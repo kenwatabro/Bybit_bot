@@ -1,7 +1,7 @@
 import asyncio
+from datetime import datetime, timedelta
 from src.utils.logger import get_logger
 from src.utils.indicators import calculate_rsi, calculate_bollinger_bands
-
 
 class RSIBollingerStrategy:
     def __init__(self, api, config):
@@ -11,6 +11,17 @@ class RSIBollingerStrategy:
         self.position = None
 
     async def execute(self):
+        while True:
+            await self.wait_for_next_interval()
+            await self.process_data()
+
+    async def wait_for_next_interval(self):
+        now = datetime.utcnow()
+        next_interval = now.replace(minute=(now.minute // 5) * 5, second=0, microsecond=0) + timedelta(minutes=5)
+        wait_seconds = (next_interval - now).total_seconds()
+        await asyncio.sleep(wait_seconds)
+
+    async def process_data(self):
         try:
             symbol = self.config["pair"]
             klines_response = await self.api.get_klines(symbol, interval="5", limit=100)
