@@ -1,0 +1,8 @@
+pybit
+numpy
+python-dotenv
+psutil
+pytest
+pytest-asyncio
+cryptography
+pyyaml

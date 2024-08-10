@@ -1,0 +1,13 @@
+.pytest_cache
+*.ipynb
+.env
+__pycache__
+*.yaml
+*.log
+*.pyc
+.vscode/
+.idea/
+venv/
+*.egg-info/
+dist/
+build/
