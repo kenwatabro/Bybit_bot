@@ -57,7 +57,7 @@ class RSIBollingerStrategy:
         current_price = close_prices[-1]
 
         if self.position is None:
-            if rsi[-1] < 30 and current_price < bb_lower[-1]:
+            if rsi[-1] < 35 and current_price < bb_lower[-1]:
                 try:
                     order = await self.api.place_order(
                         symbol=symbol, side="Buy", qty=self.config["amount"]
@@ -67,7 +67,7 @@ class RSIBollingerStrategy:
                 except Exception as e:
                     self.logger.error(f"Error placing buy order: {e}")
         elif self.position == "long":
-            if rsi[-1] > 70:
+            if bb_upper[-1] < current_price:
                 try:
                     order = await self.api.place_order(
                         symbol=symbol, side="Sell", qty=self.config["amount"]
