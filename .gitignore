@@ -1,10 +1,11 @@
 .pytest_cache
-*.ipynb
+.ipynb_checkpoints
 .env
 __pycache__
 *.yaml
 *.log
 *.pyc
+*.csv
 .vscode/
 .idea/
 venv/
