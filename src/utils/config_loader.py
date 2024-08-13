@@ -1,8 +1,11 @@
 import yaml
 import os
-from src.utils.encryption import decrypt_file
+
+# from src.utils.encryption import decrypt_file
 from dotenv import load_dotenv
+
 load_dotenv()
+
 
 class ConfigLoader:
     def __init__(self):
@@ -20,11 +23,7 @@ class ConfigLoader:
         return self.config
 
     def load_secrets(self):
-        secrets_path = os.path.join("config", "secrets.yaml.enc")
-        key = os.environ.get("SECRETS_KEY")
-        if not key:
-            raise ValueError("SECRETS_KEY environment variable is not set")
-        key = key.encode()  # Ensure the key is in bytes
-        decrypted_content = decrypt_file(secrets_path, key)
-        self.secrets = yaml.safe_load(decrypted_content)
+        secrets_path = os.path.join("config", "secrets.yaml")
+        with open(secrets_path, "r") as file:
+            self.secrets = yaml.safe_load(file)
         return self.secrets
