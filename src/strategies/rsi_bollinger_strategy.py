@@ -1,4 +1,5 @@
 import asyncio
+import pytz
 from datetime import datetime, timedelta
 from src.utils.logger import get_logger
 from src.utils.indicators import calculate_rsi, calculate_bollinger_bands
@@ -16,7 +17,8 @@ class RSIBollingerStrategy:
             await self.process_data()
 
     async def wait_for_next_interval(self):
-        now = datetime.utcnow()
+        jst = pytz.timezone("Asia/Tokyo")
+        now = datetime.now(jst)
         next_interval = now.replace(minute=(now.minute // 5) * 5, second=0, microsecond=0) + timedelta(minutes=5)
         wait_seconds = (next_interval - now).total_seconds()
         await asyncio.sleep(wait_seconds)
@@ -25,7 +27,7 @@ class RSIBollingerStrategy:
         try:
             symbol = self.config["pair"]
             klines_response = await self.api.get_klines(symbol, interval="5", limit=100)
-            
+
             if 'result' not in klines_response or 'list' not in klines_response['result']:
                 self.logger.error(f"Unexpected API response format: {klines_response}")
                 return
@@ -57,7 +59,7 @@ class RSIBollingerStrategy:
         current_price = close_prices[-1]
 
         if self.position is None:
-            if rsi[-1] < 30 and current_price < bb_lower[-1]:
+            if rsi[-1] < 35 and current_price < bb_lower[-1]:
                 try:
                     order = await self.api.place_order(
                         symbol=symbol, side="Buy", qty=self.config["amount"]
@@ -67,7 +69,7 @@ class RSIBollingerStrategy:
                 except Exception as e:
                     self.logger.error(f"Error placing buy order: {e}")
         elif self.position == "long":
-            if rsi[-1] > 70:
+            if bb_upper[-1] < current_price:
                 try:
                     order = await self.api.place_order(
                         symbol=symbol, side="Sell", qty=self.config["amount"]

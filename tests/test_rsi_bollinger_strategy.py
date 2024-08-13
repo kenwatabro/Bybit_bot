@@ -1,5 +1,7 @@
 import pytest
 import asyncio
+import pytz
+
 from unittest.mock import Mock, AsyncMock, patch
 from src.strategies.rsi_bollinger_strategy import RSIBollingerStrategy
 
