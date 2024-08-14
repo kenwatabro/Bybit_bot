@@ -80,5 +80,5 @@ class RSIBollingerStrategy:
                     self.logger.error(f"Error placing sell order: {e}")
 
         self.logger.info(
-            f"Current RSI: {rsi[-1]:.2f}, Current price: {current_price:.2f}, Lower BB: {bb_lower[-1]:.2f}"
+            f"Current RSI: {rsi[-1]:.2f}, Current price: {current_price:.2f}, Lower BB: {bb_lower[-1]:.2f}, Upper BB: {bb_upper[-1]:.2f}"
         )
