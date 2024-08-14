@@ -2,9 +2,9 @@ import yaml
 import os
 
 # from src.utils.encryption import decrypt_file
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 
 class ConfigLoader:
