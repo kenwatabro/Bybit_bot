@@ -4,7 +4,7 @@ import asyncio
 
 class BybitAPI:
     def __init__(self, api_key, api_secret):
-        self.session = HTTP(testnet=False, api_key=api_key, api_secret=api_secret)
+        self.session = HTTP(testnet=True, api_key=api_key, api_secret=api_secret)
 
     async def get_ticker(self, symbol):
         return await asyncio.to_thread(
