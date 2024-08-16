@@ -1,6 +1,6 @@
 import asyncio
-import pytz
 from datetime import datetime, timedelta
+import pytz
 from src.utils.logger import get_logger
 from src.utils.indicators import calculate_rsi, calculate_bollinger_bands
 
@@ -17,8 +17,8 @@ class RSIBollingerStrategy:
             await self.process_data()
 
     async def wait_for_next_interval(self):
-        jst = pytz.timezone("Asia/Tokyo")
-        now = datetime.now(jst)
+        tokyo_tz = pytz.timezone('Asia/Tokyo')
+        now = datetime.now(tokyo_tz)
         next_interval = now.replace(minute=(now.minute // 5) * 5, second=0, microsecond=0) + timedelta(minutes=5)
         wait_seconds = (next_interval - now).total_seconds()
         await asyncio.sleep(wait_seconds)
@@ -27,7 +27,7 @@ class RSIBollingerStrategy:
         try:
             symbol = self.config["pair"]
             klines_response = await self.api.get_klines(symbol, interval="5", limit=100)
-
+            
             if 'result' not in klines_response or 'list' not in klines_response['result']:
                 self.logger.error(f"Unexpected API response format: {klines_response}")
                 return
