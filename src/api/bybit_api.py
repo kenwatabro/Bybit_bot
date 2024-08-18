@@ -15,17 +15,19 @@ class BybitAPI:
 
     async def get_ticker(self, symbol):
         response = await asyncio.to_thread(
-            self.session.get_tickers, category="linear", symbol=symbol
+            self.session.get_tickers, category="spot", symbol=symbol
         )
         print(f"API Response: {response}")  # Added
         if 'time' in response:
             print(f"API Response Time (UTC): {response['time']}")
+        else:
+            print("No 'time' field in API response")
         return response
 
     async def place_order(self, symbol, side, qty, order_type="Market"):
         return await asyncio.to_thread(
             self.session.place_order,
-            category="linear",
+            category="spot",
             symbol=symbol,
             side=side,
             orderType=order_type,
@@ -36,7 +38,7 @@ class BybitAPI:
     async def get_klines(self, symbol, interval, limit):
         return await asyncio.to_thread(
             self.session.get_kline,
-            category="linear",
+            category="spot",
             symbol=symbol,
             interval=interval,
             limit=limit
