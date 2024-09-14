@@ -1,32 +1,31 @@
-from pybit.unified_trading import HTTP
+from pybit.unified_trading import HTTP, WebSocket
 import asyncio
 from datetime import datetime
 import pytz
 
 def convert_utc_to_jst(utc_timestamp):
-    utc_time = datetime.utcfromtimestamp(utc_timestamp / 1000)  # ミリ秒を秒に変換
+    utc_time = datetime.utcfromtimestamp(utc_timestamp / 1000)
     utc_time = utc_time.replace(tzinfo=pytz.utc)
     jst_time = utc_time.astimezone(pytz.timezone('Asia/Tokyo'))
     return jst_time
 
 class BybitAPI:
-    def __init__(self, api_key, api_secret):
-        self.session = HTTP(testnet=False, api_key=api_key, api_secret=api_secret)
+    def __init__(self, api_key, api_secret, testnet):
+        self.http = HTTP(testnet=testnet, api_key=api_key, api_secret=api_secret)
+        self.ws = WebSocket(
+            testnet=testnet,
+            channel_type="spot"
+        )
 
     async def get_ticker(self, symbol):
         response = await asyncio.to_thread(
-            self.session.get_tickers, category="spot", symbol=symbol
+            self.http.get_tickers, category="spot", symbol=symbol
         )
-        print(f"API Response: {response}")  # Added
-        if 'time' in response:
-            print(f"API Response Time (UTC): {response['time']}")
-        else:
-            print("No 'time' field in API response")
         return response
 
     async def place_order(self, symbol, side, qty, order_type="Market"):
         return await asyncio.to_thread(
-            self.session.place_order,
+            self.http.place_order,
             category="spot",
             symbol=symbol,
             side=side,
@@ -34,10 +33,9 @@ class BybitAPI:
             qty=qty,
         )
 
-    # 他の必要なAPI呼び出しメソッドを追加
     async def get_klines(self, symbol, interval, limit):
         return await asyncio.to_thread(
-            self.session.get_kline,
+            self.http.get_kline,
             category="spot",
             symbol=symbol,
             interval=interval,
@@ -45,5 +43,5 @@ class BybitAPI:
         )
     
     async def close_session(self):
-        if hasattr(self.session, 'close'):
-            await asyncio.to_thread(self.session.close)
+        if hasattr(self.http, 'close'):
+            await asyncio.to_thread(self.http.close)
