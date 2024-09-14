@@ -1,6 +1,3 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 import asyncio
 import signal
 import time
@@ -12,26 +9,28 @@ from src.utils.logger import setup_logger
 from src.utils.config_loader import ConfigLoader
 from src.utils.monitoring import monitor_system
 
+
 def restart_program(logger):
     logger.info("Restarting the program...")
     time.sleep(5)
-    os.execv(sys.executable, ['python'] + sys.argv)
+    os.execv(sys.executable, ["python"] + sys.argv)
+
 
 async def main():
     logger = setup_logger()
     config_loader = ConfigLoader()
 
-    # シャットダウンフラグ
     shutdown = asyncio.Event()
 
     async def shutdown_handler(sig, loop):
         logger.info(f"Received exit signal {sig.name}...")
         shutdown.set()
 
-    # シグナルハンドラの設定
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown_handler(s, loop)))
+        loop.add_signal_handler(
+            sig, lambda s=sig: asyncio.create_task(shutdown_handler(s, loop))
+        )
 
     start_time = time.time()
     restart_interval = 24 * 60 * 60  # 24時間ごとに再起動
@@ -45,20 +44,30 @@ async def main():
             config = config_loader.load_config()
             secrets = config_loader.load_secrets()
 
-            api = BybitAPI(secrets['bybit']['api_key'], secrets['bybit']['api_secret'])
-            strategy = RSIBollingerStrategy(api, config['trading'])
+            api = BybitAPI(
+                secrets["bybit"]["api_key"],
+                secrets["bybit"]["api_secret"],
+                testnet=config["trading"]["testnet"],
+            )
+            strategy = RSIBollingerStrategy(api, config["trading"])
 
-            await strategy.execute()
-            await asyncio.sleep(config['trading']['interval_seconds'])
+            strategy_task = asyncio.create_task(strategy.execute())
+
+            await shutdown.wait()
         except Exception as e:
             logger.error(f"Error in main loop: {e}", exc_info=True)
-            await asyncio.sleep(60)  # エラー後の待機時間
+            await asyncio.sleep(60)
         finally:
-            # リソースのクリーンアップ
-            if 'api' in locals():
+            if "api" in locals():
                 await api.close_session()
 
     logger.info("Shutting down gracefully...")
+    monitoring_task.cancel()
+    try:
+        await monitoring_task
+    except asyncio.CancelledError:
+        pass
+
 
 if __name__ == "__main__":
     asyncio.run(main())

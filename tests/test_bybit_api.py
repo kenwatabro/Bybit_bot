@@ -5,7 +5,7 @@ from src.api.bybit_api import BybitAPI
 
 @pytest.fixture
 def api():
-    return BybitAPI("test_api_key", "test_api_secret")
+    return BybitAPI("test_api_key", "test_api_secret", testnet=True)
 
 @pytest.mark.asyncio
 async def test_get_ticker(api):

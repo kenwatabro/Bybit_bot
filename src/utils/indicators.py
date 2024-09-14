@@ -1,12 +1,12 @@
 import numpy as np
-
+import pandas as pd
 
 def calculate_rsi(prices, period=14):
     deltas = np.diff(prices)
-    seed = deltas[: period + 1]
+    seed = deltas[:period]
     up = seed[seed >= 0].sum() / period
     down = -seed[seed < 0].sum() / period
-    rs = up / down
+    rs = up / down if down != 0 else 0
     rsi = np.zeros_like(prices)
     rsi[:period] = 100.0 - 100.0 / (1.0 + rs)
 
@@ -20,19 +20,21 @@ def calculate_rsi(prices, period=14):
             downval = -delta
         up = (up * (period - 1) + upval) / period
         down = (down * (period - 1) + downval) / period
-        rs = up / down
-        rsi[i] = 100.0 - 100.0 / (1.0 + rs)
+        rs = up / down if down != 0 else 0
+        rsi[i] = 100.0 - 100.0 / (1.0 + rs) if rs != 0 else 0
 
     return rsi
 
-
 def calculate_bollinger_bands(prices, period=20, num_std_dev=2):
-    rolling_mean = np.convolve(prices, np.ones(period), "valid") / period
-    rolling_std = np.std(
-        [prices[i : i + period] for i in range(len(prices) - period + 1)], axis=1
-    )
+    df = pd.DataFrame(prices, columns=['close'])
+    rolling_mean = df['close'].rolling(window=period).mean()
+    rolling_std = df['close'].rolling(window=period).std()
 
     upper_band = rolling_mean + (rolling_std * num_std_dev)
     lower_band = rolling_mean - (rolling_std * num_std_dev)
 
-    return upper_band, rolling_mean, lower_band
+    # Fill NaN values with the first valid calculation
+    upper_band.fillna(method='bfill', inplace=True)
+    lower_band.fillna(method='bfill', inplace=True)
+
+    return upper_band.values, rolling_mean.values, lower_band.values
